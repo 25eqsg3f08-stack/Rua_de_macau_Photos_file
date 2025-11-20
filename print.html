@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>澳门罕有街道 - 打印配置</title>
+    <!-- 引入分离的print.css -->
+    <link rel="stylesheet" href="./css/print.css">
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin=""
+    />
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""
+    ></script>
+</head>
+<body>
+    <h1 class="page-title">澳门罕有街道 - 打印配置</h1>
+
+    <div class="main-container">
+        <!-- 左侧：表单+控制区 -->
+        <div class="form-container">
+            <div class="form-group">
+                <label for="title">打印标题</label>
+                <input type="text" id="title" placeholder="例如：澳门路环挞沙街照片说明" required>
+            </div>
+
+            <div class="form-group">
+                <label for="content">打印文本</label>
+                <textarea id="content" placeholder="例如：挞沙街（Travessa da Tacha），位于澳门路环，因昔日渔村售卖挞沙鱼得名..." required></textarea>
+            </div>
+
+            <div class="form-group color-group">
+                <label for="color-picker">文字颜色</label>
+                <input type="color" id="color-picker" value="#333333">
+            </div>
+
+            <div class="form-group">
+                <label>图片尺寸调整（mm，精准匹配打印尺寸）</label>
+                <!-- 替换滑块为输入框，按A4纵向比例限制，确保打印无偏差 -->
+                <div class="size-control-group">
+                    <input type="number" id="img-size-input" class="size-input" min="50" max="180" value="120" step="1">
+                    <span class="size-unit">mm（高度）</span>
+                </div>
+                <p class="size-tip">⚠️ 限制：高度50-180mm（A4纵向最大可用高度），输入后实时匹配打印尺寸</p>
+            </div>
+
+            <div class="btn-group">
+                <button id="prev-btn" class="btn btn-prev">
+                    <span class="btn-icon">←</span> 上一张
+                </button>
+                <button id="next-btn" class="btn btn-next">
+                    下一张 <span class="btn-icon">→</span>
+                </button>
+                <button id="print-btn" class="btn btn-print">
+                    <span class="btn-icon">🖨️</span> 列印
+                </button>
+            </div>
+        </div>
+
+        <!-- 右侧：专属图片框架（自动预览，美观且限制单张纸） -->
+        <div class="img-preview-container">
+            <h3 class="preview-title">打印效果预览（自动同步，与实际打印偏差≤1mm）</h3>
+            <div class="img-frame" id="print-frame">
+                <div id="img-loading" class="img-loading">加载图片中...</div>
+                <div id="img-error" class="img-error" style="display: none;">图片加载失败，请检查网络</div>
+                <img id="frame-img" class="frame-img" src="" alt="澳门街道照片" style="display: none;">
+                <h2 id="frame-title" class="frame-title"></h2>
+                <div id="frame-text" class="frame-text"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入静态print.js（无需修改，仅适配输入框） -->
+    <script src="./js/print.js"></script>
+</body>
+</html>
