@@ -1,0 +1,283 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Microsoft YaHei", Arial, sans-serif;
+}
+body {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 25px;
+    background: #f8f9fa;
+}
+.page-title {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+    font-weight: 600;
+    font-size: 24px;
+}
+.main-container {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+/* 左侧：表单+控制区 */
+.form-container {
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+}
+.form-group {
+    margin-bottom: 22px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #555;
+    font-weight: 500;
+    font-size: 15px;
+}
+#title {
+    height: 45px;
+    padding: 0 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border 0.2s;
+}
+#title:focus {
+    outline: none;
+    border-color: #4dabf7;
+    box-shadow: 0 0 0 2px rgba(77,171,247,0.1);
+}
+#content {
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    resize: vertical;
+    min-height: 180px;
+    line-height: 1.7;
+    transition: border 0.2s;
+}
+#content:focus {
+    outline: none;
+    border-color: #4dabf7;
+    box-shadow: 0 0 0 2px rgba(77,171,247,0.1);
+}
+.color-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+#color-picker {
+    width: 45px;
+    height: 45px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    background: transparent;
+    box-shadow: 0 0 0 1px #e0e0e0;
+}
+.size-control-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+.size-slider {
+    flex: 1;
+    height: 6px;
+    appearance: none;
+    background: #f0f0f0;
+    border-radius: 3px;
+    outline: none;
+}
+.size-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #4dabf7;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.size-slider::-webkit-slider-thumb:hover {
+    background: #3b82f6;
+}
+.size-value {
+    font-size: 14px;
+    color: #666;
+    min-width: 60px;
+    text-align: center;
+}
+.size-tip {
+    font-size: 12px;
+    color: #999;
+    margin-top: 8px;
+    padding-left: 2px;
+}
+.btn-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 25px;
+}
+.btn {
+    padding: 11px 22px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.btn-icon {
+    font-size: 16px;
+}
+.btn-prev, .btn-next {
+    background: #e9ecef;
+    color: #333;
+}
+.btn-prev:hover, .btn-next:hover {
+    background: #dee2e6;
+}
+.btn-print {
+    background: #22c55e;
+    color: #fff;
+    flex: 1;
+    justify-content: center;
+}
+.btn-print:hover {
+    background: #16a34a;
+    box-shadow: 0 2px 8px rgba(34,197,94,0.2);
+}
+
+/* 右侧：专属图片框架（美观+打印预览一体化） */
+.img-preview-container {
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+}
+.preview-title {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 20px;
+    font-weight: 500;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+/* 专属图片框架样式 */
+.img-frame {
+    flex: 1;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    padding: 20px;
+    background: #fafafa;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    /* 核心：严格限制在单张A4纸内（210mm×297mm），转换为px（96dpi） */
+    max-width: 794px;
+    max-height: 1123px;
+    margin: 0 auto;
+    position: relative;
+}
+.img-frame::before {
+    content: "";
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    border: 1px dashed #e0e0e0;
+    border-radius: 4px;
+    pointer-events: none;
+}
+.frame-img {
+    max-width: 100%;
+    max-height: 65%; /* 预留标题文本空间，确保单张纸内 */
+    object-fit: contain;
+    border-radius: 6px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease;
+}
+.frame-title {
+    font-size: 18px;
+    color: #333;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    text-align: center;
+    max-width: 100%;
+    word-break: break-word;
+}
+.frame-text {
+    font-size: 15px;
+    color: #555;
+    line-height: 1.8;
+    text-align: left;
+    max-width: 100%;
+    word-break: break-word;
+    padding: 0 10px;
+}
+.img-loading, .img-error {
+    font-size: 18px;
+    color: #666;
+    padding: 80px 20px;
+    text-align: center;
+}
+.img-error {
+    color: #dc2626;
+}
+
+/* 打印样式优化（严格限制单张纸内，无多余元素） */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    /* 仅打印图片框架内的内容 */
+    .img-frame, .img-frame * {
+        visibility: visible;
+    }
+    .img-frame {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        box-shadow: none;
+        border: none;
+        background: #fff;
+        max-width: 100%;
+        max-height: 100%;
+        padding: 0;
+    }
+    .img-frame::before {
+        display: none;
+    }
+    .frame-img {
+        max-height: 65vh; /* 适配A4纵向，确保单张纸容纳 */
+        box-shadow: none;
+    }
+}
+
+/* 响应式适配 */
+@media (max-width: 992px) {
+    .main-container {
+        grid-template-columns: 1fr;
+    }
+    .img-frame {
+        max-width: 100%;
+        max-height: 800px;
+    }
+}
