@@ -14,7 +14,7 @@ async function readGithubPrivateFile(token, username, repo, filePath, branch = '
 }
 
 // 读取私密仓库目录列表（新增：获取目录下文件信息）
-async function listGithubPrivateRepo(token, username, repo, path = '', branch = 'main') {
+async function listGithubPrivateRepo(token, username, repo, path = '/', branch = 'main') {
   try {
     const res = await fetch(
       `https://api.github.com/repos/${username}/${repo}/contents/${path}?ref=${branch}`,
