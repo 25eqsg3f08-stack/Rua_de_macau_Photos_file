@@ -15,7 +15,7 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
         try {
             // 注册当前文件为 Service Worker
-            const registration = await navigator.serviceWorker.register('/js/offlinecache.js');
+            const registration = await navigator.serviceWorker.register('/Rua_de_macau_Photos_file/js/offlinecache.js');
             console.log('Service Worker 注册成功：', registration.scope);
         } catch (err) {
             console.error('Service Worker 注册失败：', err);
