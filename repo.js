@@ -14,8 +14,8 @@ async function listGithubPrivateRepo(token, username, repo, branch = 'main') {
 }
 
 // 使用示例（替换为你的信息）
-const PAT = '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';
-listGithubPrivateRepo(PAT, '25eqsg3f08-stack', 'https://github.com/25eqsg3f08-stack/Rua_de_macau_Photos').then(fileList => {
+const PAT = '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';
+listGithubPrivateRepo(PAT, '25eqsg3f08-stack', 'Rua_de_macau_Photos').then(fileList => {
   if (fileList) console.log('仓库根目录文件:', fileList);
 });
 
