@@ -26,7 +26,7 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
-        /* 加载动画样式（备用：若style.css未引入时生效） */
+        /* 加载动画样式 */
         .loading {
             position: absolute;
             top: 50%;
@@ -65,7 +65,7 @@
             <div id="macau-map" class="map-container"></div>
         </div>
         
-        <!-- 照片展示区域（核心修改：加载动画DOM） -->
+        <!-- 照片展示区域 -->
         <div class="photo-viewer">
             <div id="loading" class="loading" style="display: none;">
                 <div class="loading-spinner"></div>
@@ -83,21 +83,17 @@
         </div>
     </div>
 
-    <!-- 引入外部JS（顺序不可修改） -->
+    <!-- 引入外部JS（移除repo.js） -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script src="./js/repo.js"></script>
     <script src="./js/offlinecache.js"></script>
     <script src="./js/main.js"></script>
 
     <!-- 地图初始化脚本 -->
     <script>
-        // 初始化澳门地图
         window.macauMap = L.map('macau-map').setView([22.1987, 113.5439], 14);
-        // 加载开源地图瓦片
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(window.macauMap);
-        // 添加默认标记
         L.marker([22.1908, 113.5322]).addTo(window.macauMap)
             .bindPopup('澳门内港拍摄核心区')
             .openPopup();
