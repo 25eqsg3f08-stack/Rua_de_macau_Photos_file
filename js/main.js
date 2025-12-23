@@ -1,58 +1,37 @@
-// 1. 先引入 repo.js 的核心函数（极简版，用于读取私密仓库）
-async function readGithubPrivateFile(token, username, repo, filePath, branch = 'main') {
-  try {
-    const res = await fetch(
-      `https://api.github.com/repos/${username}/${repo}/contents/${filePath}?ref=${branch}`,
-      { headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3.raw' } }
-    );
-    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-    return await res.text();
-  } catch (err) {
-    console.error('读取失败:', err);
-    return null;
+// 第一步：先校验 repo.js 函数是否存在
+if (typeof window.listGithubPrivateRepo !== 'function') {
+  console.error('repo.js 未加载或函数缺失');
+  const globalError = document.getElementById('global-error');
+  if (globalError) {
+    globalError.textContent = '依赖文件加载失败，请检查 repo.js';
+    globalError.style.display = 'block';
   }
+  // 终止脚本执行，避免后续错误
+  throw new Error('listGithubPrivateRepo 函数未定义');
 }
 
-// 读取私密仓库目录列表（新增：获取目录下文件信息）
-async function listGithubPrivateRepo(token, username, repo, path = '/', branch = 'main') {
-  try {
-    const res = await fetch(
-      `https://api.github.com/repos/${username}/${repo}/contents/${path}?ref=${branch}`,
-      { headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' } }
-    );
-    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-    return await res.json();
-  } catch (err) {
-    console.error('获取目录列表失败:', err);
-    return [];
-  }
-}
-
-// 2. 原照片查看器逻辑 + 整合私密仓库读取
 document.addEventListener('DOMContentLoaded', function() {
-    // 配置：私密仓库信息 + PAT 令牌（**务必替换为你的有效 PAT**）
-    const GITHUB_CONFIG = {
-        token: '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', // 必须勾选 repo 权限
+    // 1. 配置：私密图片仓库信息 & GitHub PAT
+    const PHOTO_REPO = {
         owner: '25eqsg3f08-stack',
-        repo: 'Rua_de_macau_Photos',
+        name: 'Rua_de_macau_Photos',
+        baseUrl: 'https://25eqsg3f08-stack.github.io/Rua_de_macau_Photos/',
         branch: 'main'
     };
-    const PHOTO_REPO = {
-        baseUrl: 'https://25eqsg3f08-stack.github.io/Rua_de_macau_Photos/' // Pages 地址不变（用于加载图片）
-    };
+    const GITHUB_PAT = '你的GitHub个人访问令牌'; // 替换为实际PAT
 
-    // DOM 元素
+    // 2. DOM 元素获取（保留原逻辑）
     const currentPhoto = document.getElementById('current-photo');
     const photoLoading = document.getElementById('photo-loading');
     const photoError = document.getElementById('photo-error');
     const photoInfo = document.getElementById('photo-info');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
+    const globalError = document.getElementById('global-error');
 
     // 检查核心DOM元素
     if (!currentPhoto || !photoLoading || !photoError || !photoInfo || !prevBtn || !nextBtn) {
-        console.error('核心DOM元素缺失，无法初始化照片查看器');
-        const globalError = document.getElementById('global-error');
+        console.error('核心DOM元素缺失');
         if (globalError) {
             globalError.textContent = '页面元素加载异常，请刷新重试';
             globalError.style.display = 'block';
@@ -60,70 +39,74 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    let photoList = [];
-    let currentIndex = 0;
+    let photoList = []; 
+    let currentIndex = 0; 
 
-    // 3. 从私密仓库获取照片列表（替换原公开 API 调用）
+    // 3. 从私密仓库获取照片列表
     async function getPhotos() {
         try {
-            // 调用私密仓库目录读取函数
-            const files = await listGithubPrivateRepo(
-                GITHUB_CONFIG.token,
-                GITHUB_CONFIG.owner,
-                GITHUB_CONFIG.repo,
-                '', // 根目录
-                GITHUB_CONFIG.branch
-            );
-            // 筛选图片文件
+            const files = await window.listGithubPrivateRepo(GITHUB_PAT, PHOTO_REPO.owner, PHOTO_REPO.name, PHOTO_REPO.branch);
+            if (!files) throw new Error('仓库文件列表为空');
+
             const photos = files
                 .filter(file => file.type === 'file')
                 .filter(file => {
                     const ext = file.name.split('.').pop()?.toLowerCase();
                     return ['jpg', 'jpeg', 'png'].includes(ext);
                 })
-                .map(file => file.name);
+                .map(file => file.name); 
+
             photos.sort();
             return photos;
         } catch (err) {
-            photoError.style.display = 'block';
-            photoError.textContent = '加载照片列表失败，请检查 PAT 或仓库配置';
+            if (photoError) {
+                photoError.style.display = 'block';
+                photoError.textContent = '加载照片列表失败，请检查PAT或仓库配置';
+            }
             console.error('获取照片列表错误：', err);
             return [];
         }
     }
 
-    // 4. 加载指定照片
+    // 4. 加载指定照片（修复onload逻辑+空值防护）
     function loadPhoto(index) {
         if (index < 0 || index >= photoList.length) return;
 
-        photoLoading.style.display = 'flex';
-        currentPhoto.style.display = 'none';
-        photoError.style.display = 'none';
+        // 重置状态
+        if (photoLoading) photoLoading.style.display = 'flex';
+        if (currentPhoto) currentPhoto.style.display = 'none';
+        if (photoError) photoError.style.display = 'none';
 
         const photoUrl = PHOTO_REPO.baseUrl + photoList[index];
-        currentPhoto.src = photoUrl;
+        if (currentPhoto) {
+            currentPhoto.src = photoUrl;
 
-        currentPhoto.onload = function() {
-            photoLoading.style.display = 'none';
-            currentPhoto.style.display = 'block';
-            // 显示照片信息
-            if (photoInfo) {
-                photoInfo.textContent = `照片：${photoList[index]} / 共 ${photoList.length} 张`;
-            }
-            updateNavButtons();
-        };
+            // 加载成功
+            currentPhoto.onload = function() {
+                if (photoLoading) photoLoading.style.display = 'none';
+                if (currentPhoto) currentPhoto.style.display = 'block';
+                // 空值校验后更新信息
+                if (photoInfo) {
+                    photoInfo.textContent = `照片：${photoList[index]} / 共 ${photoList.length} 张`;
+                }
+                updateNavButtons();
+            };
 
-        currentPhoto.onerror = function() {
-            photoLoading.style.display = 'none';
-            photoError.style.display = 'block';
-            photoError.textContent = `照片 ${photoList[index]} 加载失败`;
-        };
+            // 加载失败
+            currentPhoto.onerror = function() {
+                if (photoLoading) photoLoading.style.display = 'none';
+                if (photoError) {
+                    photoError.style.display = 'block';
+                    photoError.textContent = `照片 ${photoList[index]} 加载失败`;
+                }
+            };
+        }
     }
 
     // 5. 更新导航按钮状态
     function updateNavButtons() {
-        prevBtn.disabled = currentIndex === 0;
-        nextBtn.disabled = currentIndex === photoList.length - 1;
+        if (prevBtn) prevBtn.disabled = currentIndex === 0;
+        if (nextBtn) nextBtn.disabled = currentIndex === photoList.length - 1;
     }
 
     // 6. 绑定导航按钮事件
@@ -145,8 +128,10 @@ document.addEventListener('DOMContentLoaded', function() {
     async function init() {
         photoList = await getPhotos();
         if (photoList.length === 0) {
-            photoError.style.display = 'block';
-            photoError.textContent = '图片仓库中暂无照片';
+            if (photoError) {
+                photoError.style.display = 'block';
+                photoError.textContent = '图片仓库中暂无照片';
+            }
             return;
         }
         loadPhoto(0);
