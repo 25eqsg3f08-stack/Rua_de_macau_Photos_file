@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     let swRegistration = null;
     if ('serviceWorker' in navigator) {
         try {
-            swRegistration = await navigator.serviceWorker.register('https://25eqsg3f08-stack.github.io/Rua_de_macau_Photos_file/js/offlinecache.js');
+            swRegistration = await navigator.serviceWorker.register('Rua_de_macau_Photos_file/js/offlinecache.js');
             console.log('Service Worker 注册成功，离线缓存已开启');
         } catch (error) {
             console.error('Service Worker 注册失败（不影响照片浏览）：', error);
