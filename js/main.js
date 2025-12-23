@@ -9,10 +9,10 @@ const RETRY_CONFIG = {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 1. 配置信息（仅保留 Pages 地址，无需 GitHub PAT）
+    // 1. 配置信息（仅保留 GitHub Pages 地址）
     const CONFIG = {
-        pagesUrl: 'https://25eqsg3f08-stack.github.io/Rua_de_macau_Photos/', // GitHub Pages 目录地址
-        baseUrl: 'https://25eqsg3f08-stack.github.io/Rua_de_macau_Photos/' // 照片加载基础地址
+        pagesUrl: 'https://25eqsg3f08-stack.github.io/Rua_de_macau_Photos/',
+        baseUrl: 'https://25eqsg3f08-stack.github.io/Rua_de_macau_Photos/'
     };
 
     // 2. 获取DOM元素
@@ -28,48 +28,69 @@ document.addEventListener('DOMContentLoaded', function() {
     // 3. 校验核心DOM元素
     if (!Object.values(elements).every(el => el)) {
         console.error('核心DOM元素缺失');
-        if (elements.error) {
-            elements.error.style.display = 'block';
-            elements.error.textContent = '页面元素加载异常，请刷新重试';
-        }
+        elements.error.style.display = 'block';
+        elements.error.textContent = '页面元素加载异常，请刷新重试';
         return;
     }
 
-    // 4. 从 GitHub Pages 目录自动读取照片列表
-    async function getPhotoList() {
+    // 4. 内置：从 Pages 目录解析照片列表（替代repo.js）
+    async function parsePagesPhotoList(pagesUrl) {
         try {
-            // 调用 repo.js 中的解析函数，仅传入 Pages 地址
-            const files = await window.listGithubPrivateRepo(CONFIG.pagesUrl);
-            if (!files) throw new Error('Pages 目录解析失败，未获取到文件列表');
+            const response = await fetch(pagesUrl, { mode: 'cors' });
+            if (!response.ok) {
+                throw new Error(`Pages 目录访问失败 [${response.status}]，请检查仓库是否为公共且Pages已开启`);
+            }
 
-            // 筛选图片文件并提取文件名
-            photoList = files
-                .filter(file => file.type === 'file')
-                .map(file => file.name)
-                .sort();
+            const html = await response.text();
+            const imgRegex = /href="([^"]+\.(jpg|jpeg|png))"/gi;
+            const photoFiles = [];
+            let match;
 
-            if (photoList.length === 0) throw new Error('Pages 目录中未找到图片文件（jpg/jpeg/png）');
+            while ((match = imgRegex.exec(html)) !== null) {
+                const fileName = match[1].split('/').pop();
+                if (!photoFiles.includes(fileName)) photoFiles.push(fileName);
+            }
+
+            if (photoFiles.length === 0) throw new Error('Pages 目录中未找到jpg/jpeg/png格式的照片');
+            return photoFiles;
         } catch (err) {
+            console.error('解析照片列表失败：', err);
+            return null;
+        }
+    }
+
+    // 5. 获取照片列表
+    async function getPhotoList() {
+        elements.loading.style.display = 'flex';
+        const files = await parsePagesPhotoList(CONFIG.pagesUrl);
+        
+        if (!files) {
             elements.error.style.display = 'block';
-            elements.error.textContent = err.message;
+            elements.error.textContent = '自动读取照片失败，请检查仓库配置';
+            elements.loading.style.display = 'none';
+            return;
+        }
+
+        photoList = files.sort();
+        if (photoList.length > 0) loadPhoto(0);
+        else {
+            elements.error.style.display = 'block';
+            elements.error.textContent = '仓库中未检测到照片文件';
             elements.loading.style.display = 'none';
         }
     }
 
-    // 5. 加载指定照片（含自动重试逻辑）
+    // 6. 加载指定照片（含重试）
     function loadPhoto(index, retryCount = 0) {
         if (index < 0 || index >= photoList.length) return;
 
-        // 重置状态
         elements.loading.style.display = 'flex';
         elements.currentPhoto.style.display = 'none';
         elements.error.style.display = 'none';
 
-        // 拼接照片完整URL
         const photoUrl = CONFIG.baseUrl + photoList[index];
         elements.currentPhoto.src = photoUrl;
 
-        // 加载成功回调
         elements.currentPhoto.onload = function() {
             elements.loading.style.display = 'none';
             elements.currentPhoto.style.display = 'block';
@@ -77,12 +98,9 @@ document.addEventListener('DOMContentLoaded', function() {
             updateNavButtons();
         };
 
-        // 加载失败回调（自动重试）
         elements.currentPhoto.onerror = function() {
             if (retryCount < RETRY_CONFIG.maxRetries) {
-                setTimeout(() => {
-                    loadPhoto(index, retryCount + 1);
-                }, RETRY_CONFIG.delay);
+                setTimeout(() => loadPhoto(index, retryCount + 1), RETCount + 1), RETRY_CONFIG.delay);
             } else {
                 elements.loading.style.display = 'none';
                 elements.error.style.display = 'block';
@@ -93,13 +111,13 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // 6. 更新导航按钮状态
+    // 7. 更新导航按钮
     function updateNavButtons() {
         elements.prevBtn.disabled = currentIndex === 0;
         elements.nextBtn.disabled = currentIndex === photoList.length - 1;
     }
 
-    // 7. 绑定按钮点击事件
+    // 8. 绑定按钮事件
     elements.prevBtn.addEventListener('click', () => {
         if (currentIndex > 0) {
             currentIndex--;
@@ -114,11 +132,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 8. 初始化页面（先读取照片列表，再加载首张）
-    elements.loading.style.display = 'flex';
-    getPhotoList().then(() => {
-        if (photoList.length > 0) {
-            loadPhoto(0);
-        }
-    });
+    // 9. 初始化
+    getPhotoList();
 });
