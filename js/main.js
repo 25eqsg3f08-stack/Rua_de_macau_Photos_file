@@ -5,7 +5,7 @@ let currentIndex = 0;
 document.addEventListener('DOMContentLoaded', function() {
     // 1. 配置信息（替换为你的GitHub PAT）
     const CONFIG = {
-        githubToken: '你的GitHub个人访问令牌',
+        githubToken: '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',
         owner: '25eqsg3f08-stack',
         repo: 'Rua_de_macau_Photos',
         branch: 'main',
