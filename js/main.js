@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    // 4. 内置：从 Pages 目录解析照片列表（替代repo.js）
+    // 4. 内置：从 Pages 目录解析照片列表
     async function parsePagesPhotoList(pagesUrl) {
         try {
             const response = await fetch(pagesUrl, { mode: 'cors' });
@@ -72,8 +72,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         photoList = files.sort();
-        if (photoList.length > 0) loadPhoto(0);
-        else {
+        if (photoList.length > 0) {
+            loadPhoto(0);
+        } else {
             elements.error.style.display = 'block';
             elements.error.textContent = '仓库中未检测到照片文件';
             elements.loading.style.display = 'none';
@@ -100,7 +101,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         elements.currentPhoto.onerror = function() {
             if (retryCount < RETRY_CONFIG.maxRetries) {
-                setTimeout(() => loadPhoto(index, retryCount + 1), RETCount + 1), RETRY_CONFIG.delay);
+                setTimeout(() => {
+                    loadPhoto(index, retryCount + 1);
+                }, RETRY_CONFIG.delay);
             } else {
                 elements.loading.style.display = 'none';
                 elements.error.style.display = 'block';
