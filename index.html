@@ -6,6 +6,7 @@
     <title>澳门街道影像集</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <!-- 自定义样式 -->
     <link rel="stylesheet" href="./css/style.css">
     <style>
         /* 地图样式 */
@@ -24,6 +25,34 @@
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
+
+        /* 加载动画样式（备用：若style.css未引入时生效） */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4299e1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-text {
+            font-size: 16px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -36,9 +65,12 @@
             <div id="macau-map" class="map-container"></div>
         </div>
         
-        <!-- 照片展示区域 -->
+        <!-- 照片展示区域（核心修改：加载动画DOM） -->
         <div class="photo-viewer">
-            <div id="loading" class="loading">加载中...</div>
+            <div id="loading" class="loading" style="display: none;">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">加载中... 正在读取照片</div>
+            </div>
             <div id="error" class="error" style="display: none;"></div>
             <img id="current-photo" class="photo" src="" alt="澳门街道照片" style="display: none;">
             <div id="photo-info" class="photo-info">照片：-- / 共 -- 张</div>
@@ -51,7 +83,7 @@
         </div>
     </div>
 
-    <!-- 引入外部JS -->
+    <!-- 引入外部JS（顺序不可修改） -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="./js/repo.js"></script>
     <script src="./js/offlinecache.js"></script>
