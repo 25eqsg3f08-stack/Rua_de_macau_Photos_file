@@ -2,14 +2,17 @@
 let photoList = [];
 let currentIndex = 0;
 
+// 重试配置
+const RETRY_CONFIG = {
+    maxRetries: 2,
+    delay: 1000
+};
+
 document.addEventListener('DOMContentLoaded', function() {
-    // 1. 配置信息（替换为你的GitHub PAT）
+    // 1. 配置信息（仅保留 Pages 地址，无需 GitHub PAT）
     const CONFIG = {
-        githubToken: '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',
-        owner: '25eqsg3f08-stack',
-        repo: 'Rua_de_macau_Photos',
-        branch: 'main',
-        baseUrl: 'https://25eqsg3f08-stack.github.io/Rua_de_macau_Photos/'
+        pagesUrl: 'https://25eqsg3f08-stack.github.io/Rua_de_macau_Photos/', // GitHub Pages 目录地址
+        baseUrl: 'https://25eqsg3f08-stack.github.io/Rua_de_macau_Photos/' // 照片加载基础地址
     };
 
     // 2. 获取DOM元素
@@ -25,37 +28,27 @@ document.addEventListener('DOMContentLoaded', function() {
     // 3. 校验核心DOM元素
     if (!Object.values(elements).every(el => el)) {
         console.error('核心DOM元素缺失');
-        const errEl = document.getElementById('error');
-        if (errEl) {
-            errEl.style.display = 'block';
-            errEl.textContent = '页面元素加载异常，请刷新重试';
+        if (elements.error) {
+            elements.error.style.display = 'block';
+            elements.error.textContent = '页面元素加载异常，请刷新重试';
         }
         return;
     }
 
-    // 4. 从GitHub私密仓库获取照片列表
+    // 4. 从 GitHub Pages 目录自动读取照片列表
     async function getPhotoList() {
         try {
-            const files = await window.listGithubPrivateRepo(
-                CONFIG.githubToken,
-                CONFIG.owner,
-                CONFIG.repo,
-                CONFIG.branch
-            );
+            // 调用 repo.js 中的解析函数，仅传入 Pages 地址
+            const files = await window.listGithubPrivateRepo(CONFIG.pagesUrl);
+            if (!files) throw new Error('Pages 目录解析失败，未获取到文件列表');
 
-            if (!files) throw new Error('仓库文件列表获取失败');
-
-            // 筛选图片文件
+            // 筛选图片文件并提取文件名
             photoList = files
                 .filter(file => file.type === 'file')
-                .filter(file => {
-                    const ext = file.name.split('.').pop()?.toLowerCase();
-                    return ['jpg', 'jpeg', 'png'].includes(ext);
-                })
                 .map(file => file.name)
                 .sort();
 
-            if (photoList.length === 0) throw new Error('仓库中未找到图片文件');
+            if (photoList.length === 0) throw new Error('Pages 目录中未找到图片文件（jpg/jpeg/png）');
         } catch (err) {
             elements.error.style.display = 'block';
             elements.error.textContent = err.message;
@@ -63,8 +56,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 5. 加载指定照片
-    function loadPhoto(index) {
+    // 5. 加载指定照片（含自动重试逻辑）
+    function loadPhoto(index, retryCount = 0) {
         if (index < 0 || index >= photoList.length) return;
 
         // 重置状态
@@ -72,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.currentPhoto.style.display = 'none';
         elements.error.style.display = 'none';
 
-        // 拼接照片URL
+        // 拼接照片完整URL
         const photoUrl = CONFIG.baseUrl + photoList[index];
         elements.currentPhoto.src = photoUrl;
 
@@ -84,11 +77,19 @@ document.addEventListener('DOMContentLoaded', function() {
             updateNavButtons();
         };
 
-        // 加载失败回调
+        // 加载失败回调（自动重试）
         elements.currentPhoto.onerror = function() {
-            elements.loading.style.display = 'none';
-            elements.error.style.display = 'block';
-            elements.error.textContent = navigator.onLine ? `照片 ${photoList[index]} 加载失败` : '无网络连接，暂无缓存照片';
+            if (retryCount < RETRY_CONFIG.maxRetries) {
+                setTimeout(() => {
+                    loadPhoto(index, retryCount + 1);
+                }, RETRY_CONFIG.delay);
+            } else {
+                elements.loading.style.display = 'none';
+                elements.error.style.display = 'block';
+                elements.error.textContent = navigator.onLine ? 
+                    `照片 ${photoList[index]} 加载失败（已重试${RETRY_CONFIG.maxRetries}次）` : 
+                    '无网络连接，暂无缓存照片';
+            }
         };
     }
 
@@ -113,7 +114,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 8. 初始化
+    // 8. 初始化页面（先读取照片列表，再加载首张）
+    elements.loading.style.display = 'flex';
     getPhotoList().then(() => {
         if (photoList.length > 0) {
             loadPhoto(0);
