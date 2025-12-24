@@ -5,7 +5,8 @@ const CORE_ASSETS = [
     '/',
     '/index.html',
     '/js/main.js',
-    '/js/photo1.jpg', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+    '/js/photo1.jpg',
+    "/js/offlinecache.js", 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
 ];
 
 // 安装：缓存核心静态资源
