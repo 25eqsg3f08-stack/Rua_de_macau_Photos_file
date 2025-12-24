@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const CONFIG = {
         pagesUrl: 'https://25eqsg3f08-stack.github.io/Rua_de_macau_Photos/', // GitHub Pages目录地址
         baseUrl: 'https://25eqsg3f08-stack.github.io/Rua_de_macau_Photos/',   // 照片加载基础地址
-        fallbackPhotos: ['/photo1.jpg', '/photo2.png', '/macau_3.jpeg']          // 国内网络兜底的照片名
+        fallbackPhotos: ['photo1.jpg', 'photo2.png', 'macau_3.jpeg']          // 国内网络兜底的照片名
     };
 
     // 获取页面DOM元素
