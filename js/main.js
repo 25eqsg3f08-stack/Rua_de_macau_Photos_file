@@ -1,7 +1,7 @@
 // 全局变量
 let photoUrls = []; // 存储所有照片URL
 let currentPage = 1; // 当前页码
-const githubRepo = "https://raw.githubusercontent.com/25eqsg3f08-stack/Rua_de_macau_Photos/main/"; // GitHub图片基础路径
+const githubRepo = "https://github.com/25eqsg3f08-stack/Rua_de_macau_Photos"; // GitHub图片基础路径
 
 // DOM元素
 const currentPhotoEl = document.getElementById('current-photo');
