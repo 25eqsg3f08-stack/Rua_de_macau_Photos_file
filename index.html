@@ -4,99 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>澳门街道影像集</title>
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <!-- 自定义样式 -->
-    <link rel="stylesheet" href="./css/style.css">
-    <style>
-        /* 地图样式 */
-        .map-wrap {
-            margin: 30px 0;
-            text-align: center;
-        }
-        .map-title {
-            margin-bottom: 10px;
-            color: #333;
-            font-size: 18px;
-        }
-        .map-container {
-            width: 100%;
-            height: 300px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        /* 加载动画样式 */
-        .loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-        }
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #4299e1;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .loading-text {
-            font-size: 16px;
-            color: #666;
-        }
-    </style>
+    <!-- 引入Leaflet依赖 -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>澳门街道影像集</h1>
+        <!-- 标题区域 -->
+        <header class="header">
+            <h1>澳门街道影像集</h1>
+            <p>记录澳门内港及特色街道实拍瞬间</p>
+        </header>
 
-        <!-- 澳门地图区域 -->
-        <div class="map-wrap">
-            <h3 class="map-title">澳门内港拍摄区域参考</h3>
-            <div id="macau-map" class="map-container"></div>
-        </div>
-        
-        <!-- 照片展示区域 -->
-        <div class="photo-viewer">
-            <div id="loading" class="loading" style="display: none;">
-                <div class="loading-spinner"></div>
-                <div class="loading-text">加载中... 正在读取照片</div>
+        <!-- 主体内容区 -->
+        <div class="main-content">
+            <!-- 图片展示区 -->
+            <div class="photo-container">
+                <img id="current-photo" src="" alt="澳门街道照片" class="photo">
+                <div id="photo-loading" class="loading">加载中...</div>
+                <div id="photo-error" class="error" style="display: none;">图片加载失败</div>
             </div>
-            <div id="error" class="error" style="display: none;"></div>
-            <img id="current-photo" class="photo" src="" alt="澳门街道照片" style="display: none;">
-            <div id="photo-info" class="photo-info">照片：-- / 共 -- 张</div>
+
+            <!-- 分页控制区 -->
+            <div class="pagination">
+                <button id="prev-btn" disabled>上一页</button>
+                <span id="page-info">第 1 页 / 共 0 页</span>
+                <button id="next-btn" disabled>下一页</button>
+                <button id="print-btn" class="print-btn">打印照片</button>
+            </div>
+
+            <!-- 地图展示区 -->
+            <div class="map-container">
+                <h3>拍摄区域参考地图</h3>
+                <div id="map" class="map"></div>
+            </div>
         </div>
 
-        <!-- 导航按钮 -->
-        <div class="btn-group">
-            <button id="prev-btn" class="nav-btn" disabled>上一张</button>
-            <button id="next-btn" class="nav-btn" disabled>下一张</button>
-        </div>
+        <!-- 页脚 -->
+        <footer class="footer">
+            <p>影像来源：<a href="https://github.com/25eqsg3f08-stack/Rua_de_macau_Photos" target="_blank">GitHub仓库</a></p>
+        </footer>
     </div>
 
-    <!-- 引入外部JS（移除repo.js） -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script src="./js/offlinecache.js"></script>
-    <script src="./js/main.js"></script>
-
-    <!-- 地图初始化脚本 -->
-    <script>
-        window.macauMap = L.map('macau-map').setView([22.1987, 113.5439], 14);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(window.macauMap);
-        L.marker([22.1908, 113.5322]).addTo(window.macauMap)
-            .bindPopup('澳门内港拍摄核心区')
-            .openPopup();
-    </script>
+    <!-- 引入依赖脚本 -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
