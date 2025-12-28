@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>澳门街道影像集</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>澳门街道影像集</h1>
+            <p>内港街巷实拍 · 自动同步GitHub仓库</p>
+        </header>
+
+        <div class="main-content">
+            <!-- 图片展示区 -->
+            <div class="photo-container">
+                <img id="current-photo" class="photo" alt="澳门街道照片">
+                <div id="loading">加载中...</div>
+                <div id="error" class="hidden">
+                    <p>图片加载失败</p>
+                </div>
+            </div>
+
+            <!-- 分页控件 -->
+            <div class="pagination">
+                <button id="prev-btn" disabled>上一页</button>
+                <span id="page-info">第 1 页 / 共 0 页</span>
+                <button id="next-btn" disabled>下一页</button>
+                <button id="print-btn">打印当前照片</button>
+            </div>
+
+            <!-- 地图区域 -->
+            <div class="map-box">
+                <h3>拍摄区域参考</h3>
+                <div id="map"></div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>影像源：<a href="https://github.com/25eqsg3f08-stack/Rua_de_macau_Photos" target="_blank">GitHub仓库</a></p>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
