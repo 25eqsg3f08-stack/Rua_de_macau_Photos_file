@@ -7,10 +7,13 @@ const IMAGE_EXTS = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
 let photoList = [];
 let currentIndex = 0;
 
-// DOM 元素获取（带存在性校验）
+// DOM 元素获取（带存在性校验，未找到返回null）
 function getEl(id) {
     const el = document.getElementById(id);
-    if (!el) console.warn(`DOM元素#${id}未找到，请检查HTML中的ID`);
+    if (!el) {
+        console.warn(`DOM元素#${id}未找到，请检查HTML中的ID`);
+        return null; // 未找到时返回null，避免后续操作报错
+    }
     return el;
 }
 
@@ -29,7 +32,6 @@ async function parseRepoImages() {
     if (!el.loading) return;
     el.loading.textContent = "正在解析仓库图片...";
     try {
-        // 调用GitHub Contents API获取文件列表
         const apiUrl = `${REPO_URL.replace("github.com", "api.github.com/repos")}/contents/`;
         const response = await fetch(apiUrl, {
             headers: { "Accept": "application/vnd.github.v3+json" },
@@ -39,7 +41,6 @@ async function parseRepoImages() {
         if (!response.ok) throw new Error(`仓库请求失败 [${response.status}]`);
         const contents = await response.json();
 
-        // 筛选图片文件
         const imageFiles = contents.filter(item => {
             if (item.type !== "file") return false;
             const ext = item.name.slice(item.name.lastIndexOf(".")).toLowerCase();
@@ -48,7 +49,6 @@ async function parseRepoImages() {
 
         if (imageFiles.length === 0) throw new Error("仓库中未找到图片文件");
 
-        // 生成可直接访问的Raw图片地址
         photoList = imageFiles.map(file => {
             const cleanFileName = file.name.trim().replace(/\s+/g, "");
             return RAW_BASE_URL + cleanFileName;
@@ -63,37 +63,35 @@ async function parseRepoImages() {
     }
 }
 
-// 更新图片展示（添加加载容错与兜底）
+// 更新图片展示（添加多层判空，避免赋值undefined）
 function updatePhotoDisplay() {
+    // 先判空核心元素
     if (photoList.length === 0 || !el.currentPhoto || !el.photoInfo) return;
     
     const currentUrl = photoList[currentIndex];
-    // 重置图片状态，避免缓存干扰
     el.currentPhoto.src = "";
     el.currentPhoto.style.display = "none";
     el.currentPhoto.alt = `澳门内港照片 ${currentIndex + 1}`;
 
-    // 图片加载成功处理
     el.currentPhoto.onload = function() {
         el.currentPhoto.style.display = "block";
-        console.log(`图片 ${currentIndex + 1} 加载成功`);
     };
 
-    // 图片加载失败处理（显示兜底占位图）
     el.currentPhoto.onerror = function() {
-        console.error(`图片 ${currentIndex + 1} 加载失败: ${currentUrl}`);
-        // 使用随机占位图替代
         el.currentPhoto.src = `https://picsum.photos/600/400?random=${currentIndex}`;
         el.currentPhoto.style.display = "block";
     };
 
-    // 赋值正确的Raw图片地址
     el.currentPhoto.src = currentUrl;
     el.photoInfo.textContent = `${currentIndex + 1} / ${photoList.length}`;
     
-    // 更新上下切换按钮状态
-    if (el.prevBtn) el.prevBtn.disabled = currentIndex.prevBtn.disabled = currentIndex === 0;
-    if (el.nextBtn) el.nextBtn.disabled = currentIndex === photoList.length - 1;
+    // 给按钮赋值disabled前先判空，避免操作undefined
+    if (el.prevBtn) {
+        el.prevBtn.disabled = currentIndex === 0;
+    }
+    if (el.nextBtn) {
+        el.nextBtn.disabled = currentIndex === photoList.length - 1;
+    }
 }
 
 // 加载图片主逻辑
@@ -110,7 +108,7 @@ async function loadPhotos() {
     }
 }
 
-// 绑定事件（仅保留上下切换按钮）
+// 绑定事件（绑定前先判空按钮是否存在）
 function bindEvents() {
     // 上一个按钮
     if (el.prevBtn) {
