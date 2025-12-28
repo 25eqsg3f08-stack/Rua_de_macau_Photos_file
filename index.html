@@ -9,74 +9,92 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
-            padding: 10px; 
-            font-family: Arial, Helvetica, sans-serif; 
-            background-color: #f5f5f5;
+            padding: 20px; 
+            font-family: Arial, sans-serif; 
+            background: #f8f9fa;
         }
         h1 { 
             text-align: center; 
-            margin-bottom: 15px; 
-            color: #333;
-            font-size: 20px;
+            margin-bottom: 20px; 
+            color: #212529;
+            font-size: 24px;
+            font-weight: 600;
         }
         .loading { 
             text-align: center; 
             padding: 15px; 
-            font-size: 14px; 
-            color: #666;
+            font-size: 16px; 
+            color: #6c757d;
+            margin-bottom: 20px;
         }
-        #map { 
-            height: 200px; 
-            border-radius: 8px; 
-            margin: 15px 0; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
+        /* 图片展示区优化 */
         .photo-view { 
             text-align: center; 
-            margin: 20px 0; 
-            position: relative;
+            margin: 30px 0; 
+            min-height: 400px; /* 预留图片高度，避免空白塌陷 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
         .photo-view img { 
             max-width: 100%; 
-            max-height: 60vh; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            max-height: 50vh; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
             object-fit: contain;
+            background: #fff; /* 图片加载前显示白色背景 */
+            padding: 10px;
         }
         .photo-info { 
-            margin: 10px 0; 
-            font-size: 14px; 
-            color: #666;
-        }
-        .controls { 
-            display: flex; 
-            justify-content: center; 
-            gap: 10px; 
             margin: 20px 0; 
-            flex-wrap: wrap;
+            font-size: 18px; 
+            color: #495057;
+            font-weight: 500;
+        }
+        /* 按钮组布局优化 */
+        .controls { 
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 两列布局，更宽松 */
+            gap: 15px;
+            max-width: 400px;
+            margin: 0 auto;
         }
         .controls button { 
-            padding: 10px 20px; 
+            padding: 12px 0; 
             border: none; 
-            border-radius: 20px; 
-            background: #2196F3; 
+            border-radius: 8px; 
+            background: #007bff; 
             color: #fff; 
             cursor: pointer;
-            font-size: 14px;
-            min-width: 80px;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background 0.2s;
         }
         .controls button:disabled { 
-            background: #ccc; 
+            background: #6c757d; 
             cursor: not-allowed; 
+        }
+        .controls button:hover:not(:disabled) { 
+            background: #0056b3;
         }
         #error { 
             text-align: center; 
             padding: 15px; 
-            color: #e53935; 
+            color: #dc3545; 
             display: none;
-            background: #ffebee;
+            background: #f8d7da;
             border-radius: 8px;
-            margin: 10px 0;
+            margin: 20px 0;
+            font-size: 16px;
+        }
+        /* 地图样式保留 */
+        #map { 
+            height: 200px; 
+            border-radius: 8px; 
+            margin: 20px 0; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: none; /* 若不需要地图可隐藏，需要则删除此行 */
         }
     </style>
 </head>
@@ -86,11 +104,11 @@
     <div id="error"></div>
     <div id="map"></div>
 
-    <!-- 图片展示与控制 -->
     <div class="photo-view">
-        <img id="current-photo" src="" alt="暂无图片" style="display: none;">
+        <img id="current-photo" src="" alt="澳门内港照片" style="display: none;">
         <div class="photo-info" id="photo-info">0 / 0</div>
     </div>
+
     <div class="controls">
         <button id="prev-btn" disabled>上一个</button>
         <button id="next-btn" disabled>下一个</button>
@@ -100,5 +118,28 @@
 
     <script src="map.js"></script>
     <script src="script.js"></script>
-</body>
-</html>
+    <!-- 打印设置与跳转逻辑 -->
+    <script>
+        const printBtn = document.getElementById("print-btn");
+        const printSetting = document.createElement("div");
+        printSetting.id = "print-setting";
+        printSetting.style.display = "none";
+        printSetting.style.maxWidth = "400px";
+        printSetting.style.margin = "20px auto";
+        printSetting.style.padding = "20px";
+        printSetting.style.background = "#fff";
+        printSetting.style.borderRadius = "8px";
+        printSetting.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
+        printSetting.innerHTML = `
+            <h3 style="text-align:center; margin-bottom:15px; font-size:18px;">打印设置</h3>
+            <div style="margin-bottom:10px;">
+                <label style="display:block; margin-bottom:5px; font-size:14px; color:#6c757d;">标题</label>
+                <input type="text" id="print-title" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" placeholder="澳门内港照片">
+            </div>
+            <div style="margin-bottom:10px;">
+                <label style="display:block; margin-bottom:5px; font-size:14px; color:#6c757d;">图片尺寸</label>
+                <select id="print-size" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;">
+                    <option value="original">实际大小</option>
+                    <option value="50%">50%</option>
+                    <option value="75%">75%</option>
+                    
