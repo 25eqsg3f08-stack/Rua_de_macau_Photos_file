@@ -1,22 +1,17 @@
-// 配置项
 const CONFIG = {
-    // GitHub Pages 托管的仓库图片根路径（关键：同源无跨域）
-    // 格式：https://<用户名>.github.io/<仓库名>/
-    REPO_PAGES_URL: "https://25eqsg3f08-stack.github.io/Rua_de_macau_Photos/",
-    ERROR_IMG: "images/error.png",
-    FALLBACK_ERROR_IMG: "https://picsum.photos/id/1005/800/500",
+    // 强制指定目标仓库 Pages 地址（核心前提）
+    TARGET_REPO_URL: "https://25eqsg3f08-stack.github.io/Rua_de_macau_Photos/",
+    ERROR_IMG: "https://picsum.photos/id/1005/800/500",
     MACAU_COORD: [22.1987, 113.5439],
     MAP_ZOOM: 15,
     PRINT_PAGE_URL: "https://25eqsg3f08-stack.github.io/macau-photo-gallery/print.html",
     // 支持的图片格式
-    IMG_EXTENSIONS: ["jpg", "png", "jpeg", "webp"]
+    IMG_EXTENSIONS: ["jpg", "jpeg", "png", "webp"]
 };
 
-// 全局变量
 let photoList = [];
 let currentIndex = 0;
 
-// DOM元素
 const el = {
     photo: document.getElementById("current-photo"),
     loading: document.getElementById("loading"),
@@ -35,68 +30,46 @@ function initMap() {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
-    L.marker(CONFIG.MACAU_COORD).addTo(map)
-        .bindPopup("澳门内港 · 主要拍摄区域").openPopup();
+    L.marker(CONFIG.MACAU_COORD).addTo(map).bindPopup("澳门内港 · 主要拍摄区域").openPopup();
 }
 
-// 核心：通过预生成常见命名规则 + 可用性检测，自动获取图片列表
-async function autoDetectPhotos() {
-    el.loading.textContent = "正在自动检测仓库图片...";
-    photoList = [];
-    // 规则1：匹配 img-YYYYMMDD-XXX 格式（仓库常用命名）
-    const datePrefixes = ["20251201", "20251202", "20251203", "20251204", "20251205"];
-    const serials = ["001", "002", "003", "004", "005"];
+// 核心：纯前端解析目标仓库目录页面，提取所有图片（无后端）
+async function parseRepoPhotos() {
+    el.loading.textContent = "正在读取仓库图片列表...";
+    try {
+        // 1. 使用公共 CORS 代理请求目录页面（纯前端跨域唯一方案，无后端依赖）
+        const corsProxy = "https://api.allorigins.win/get?url=";
+        const targetUrl = corsProxy + encodeURIComponent(CONFIG.TARGET_REPO_URL);
+        
+        const res = await fetch(targetUrl);
+        if (!res.ok) throw new Error("请求仓库目录失败");
+        
+        const data = await res.json();
+        const dirHtml = data.contents; // 获取目录页面的 HTML 源码
 
-    // 批量生成可能的图片路径并检测可用性
-    const allPossibleUrls = [];
-    for (const date of datePrefixes) {
-        for (const s of serials) {
-            for (const ext of CONFIG.IMG_EXTENSIONS) {
-                allPossibleUrls.push(`${CONFIG.REPO_PAGES_URL}img-${date}-${s}.${ext}`);
-            }
+        // 2. 正则提取所有图片链接（匹配目标仓库下的图片文件）
+        const imgRegex = new RegExp(`href="([^"]+\\.(${CONFIG.IMG_EXTENSIONS.join("|")}))"`, "gi");
+        const imgPaths = new Set();
+        let match;
+
+        while ((match = imgRegex.exec(dirHtml)) !== null) {
+            const imgPath = match[1];
+            // 拼接完整图片 URL（确保是目标仓库的地址）
+            const fullImgUrl = new URL(imgPath, CONFIG.TARGET_REPO_URL).href;
+            imgPaths.add(fullImgUrl);
         }
+
+        // 3. 转换为数组并验证有效性
+        photoList = Array.from(imgPaths);
+        if (photoList.length === 0) throw new Error("仓库中未找到图片文件");
+
+        updatePagination();
+        loadCurrentPhoto();
+    } catch (err) {
+        console.error("解析失败:", err);
+        el.loading.textContent = "读取失败，请检查仓库 Pages 配置";
+        el.error.classList.remove("hidden");
     }
-
-    // 并行检测图片是否存在
-    const detectPromises = allPossibleUrls.map(async (url) => {
-        try {
-            const res = await fetch(url, { method: "HEAD" });
-            return res.ok ? url : null;
-        } catch {
-            return null;
-        }
-    });
-
-    // 过滤有效图片URL
-    const results = await Promise.all(detectPromises);
-    photoList = results.filter(url => url !== null);
-
-    if (photoList.length === 0) {
-        // 规则2：匹配简单命名（如 photo1.jpg, pic.png 等）
-        const simpleNames = ["photo1", "photo2", "photo3", "pic1", "pic2", "macau1", "macau2"];
-        const simpleUrls = [];
-        for (const name of simpleNames) {
-            for (const ext of CONFIG.IMG_EXTENSIONS) {
-                simpleUrls.push(`${CONFIG.REPO_PAGES_URL}${name}.${ext}`);
-            }
-        }
-        const simpleResults = await Promise.all(simpleUrls.map(async (url) => {
-            try {
-                const res = await fetch(url, { method: "HEAD" });
-                return res.ok ? url : null;
-            } catch {
-                return null;
-            }
-        }));
-        photoList = simpleResults.filter(url => url !== null);
-    }
-
-    if (photoList.length === 0) {
-        throw new Error("未检测到任何有效图片");
-    }
-
-    updatePagination();
-    loadCurrentPhoto();
 }
 
 // 加载当前图片
@@ -128,7 +101,7 @@ function loadCurrentPhoto() {
         el.error.classList.remove("hidden");
         el.loadTime.textContent = `加载失败（耗时 ${duration} ms）`;
         el.loadTime.classList.remove("hidden");
-        el.photo.src = CONFIG.ERROR_IMG || CONFIG.FALLBACK_ERROR_IMG;
+        el.photo.src = CONFIG.ERROR_IMG;
         el.photo.style.display = "block";
     };
 }
@@ -169,11 +142,7 @@ function bindEvents() {
 // 初始化应用
 function initApp() {
     initMap();
-    autoDetectPhotos().catch(err => {
-        console.error(err);
-        el.loading.textContent = "无法获取仓库图片，请确认仓库已开启GitHub Pages";
-        el.error.classList.remove("hidden");
-    });
+    parseRepoPhotos(); // 强制读取目标仓库
     bindEvents();
 }
 
