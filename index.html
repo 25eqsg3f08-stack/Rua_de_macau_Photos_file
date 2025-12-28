@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>澳门内港照片集</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            padding: 20px; 
+            font-family: Arial, sans-serif; 
+            background: #f8f9fa;
+        }
+        h1 { 
+            text-align: center; 
+            margin-bottom: 20px; 
+            color: #212529;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .loading { 
+            text-align: center; 
+            padding: 15px; 
+            font-size: 16px; 
+            color: #6c757d;
+            margin-bottom: 20px;
+        }
+        #error { 
+            text-align: center; 
+            padding: 15px; 
+            color: #dc3545; 
+            display: none;
+            background: #f8d7da;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 16px;
+        }
+        /* 图片展示区优化 */
+        .photo-view { 
+            text-align: center; 
+            margin: 30px 0; 
+            min-height: 400px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .photo-view img { 
+            max-width: 100%; 
+            max-height: 50vh; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            object-fit: contain;
+            background: #fff;
+            padding: 10px;
+        }
+        .photo-info { 
+            margin: 20px 0; 
+            font-size: 18px; 
+            color: #495057;
+            font-weight: 500;
+        }
+        /* 按钮组布局优化 */
+        .controls { 
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 15px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .controls button { 
+            padding: 12px 0; 
+            border: none; 
+            border-radius: 8px; 
+            background: #007bff; 
+            color: #fff; 
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .controls button:disabled { 
+            background: #6c757d; 
+            cursor: not-allowed; 
+        }
+        .controls button:hover:not(:disabled) { 
+            background: #0056b3;
+        }
+        /* 地图入口按钮样式 */
+        .map-entry {
+            text-align: center;
+            margin: 25px 0;
+        }
+        .map-entry a {
+            padding: 12px 30px;
+            background: #28a745;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .map-entry a:hover {
+            background: #218838;
+        }
+        /* 打印设置面板样式 */
+        #print-setting {
+            display: none;
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        #print-setting h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 18px;
+            color: #212529;
+        }
+        #print-setting .form-group {
+            margin-bottom: 12px;
+        }
+        #print-setting label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #6c757d;
+        }
+        #print-setting input, 
+        #print-setting select, 
+        #print-setting textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        #print-setting textarea {
+            height: 60px;
+            resize: vertical;
+        }
+        #to-preview {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            background: #007bff;
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>澳门内港照片集</h1>
+    <div class="loading" id="loading">正在加载图片...</div>
+    <div id="error"></div>
+
+    <!-- 图片展示区域 -->
+    <div class="photo-view">
+        <img id="current-photo" src="" alt="澳门内港照片" style="display: none;">
+        <div class="photo-info" id="photo-info">0 / 0</div>
+    </div>
+
+    <!-- 功能按钮组 -->
+    <div class="controls">
+        <button id="prev-btn" disabled>上一个</button>
+        <button id="next-btn" disabled>下一个</button>
+        <button id="print-btn" disabled>打印</button>
+        <button id="mail-btn" disabled>分享邮件</button>
+</div>
+     <!-- 新增地图入口按钮 -->
+     <div class="map-entry">
+         <a href="map.html">查看澳门内港地图</a>
+     </div>
+     <!-- 打印设置面板 -->
+     <div id="print-setting">
+         <h3>打印参数设置</h3>
+         <div class="form-group">
+             <label for="print-title">打印标题</label>
+             <input type="text" id="print-title" placeholder="澳门内港照片">
+         </div>
+         <div class="form-group">
+             <label for="print-size">图片打印尺寸</label>
+             <select id="print-size">
+                 <option value="original">实际大小</option>
+                 <option value="50%">50% 缩放</option>
+                 <option value="75%">75% 缩放</option>
+                 <option value="120%">120% 缩放</option>
+             </select>
+         </div>
+         <div class="form-group">
+             <label for="print-content">附加内容</label>
+             <textarea id="print-content" placeholder="添加照片说明、拍摄地点等..."></textarea>
+         </div>
+         <button id="to-preview">前往预览</button>
+     </div>
+     <!-- 引入脚本（放在body末尾，确保DOM渲染完成） -->
+     <script src="script.js"></script>
+ </body>
+ </html>
