@@ -1,4 +1,4 @@
-// 直接使用 GitHub 仓库地址
+// 仓库基础配置（直接指向 GitHub 仓库）
 const REPO_URL = "https://github.com/25eqsg3f08-stack/Rua_de_macau_Photos";
 const IMAGE_EXTS = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
 
@@ -30,7 +30,7 @@ async function parseRepoImages() {
     if (!el.loading) return;
     el.loading.textContent = "正在解析仓库图片...";
     try {
-        // 调用GitHub Contents API
+        // 调用GitHub Contents API获取文件列表
         const apiUrl = `${REPO_URL.replace("github.com", "api.github.com/repos")}/contents/`;
         const response = await fetch(apiUrl, {
             headers: { "Accept": "application/vnd.github.v3+json" },
@@ -49,12 +49,14 @@ async function parseRepoImages() {
 
         if (imageFiles.length === 0) throw new Error("仓库中未找到图片文件");
 
-        // 生成GitHub仓库可访问的图片地址
+        // 生成图片地址（指向GitHub仓库的文件页面）
         photoList = imageFiles.map(file => {
-            return `${REPO_URL}/raw/main/${file.name}`;
+            return `${REPO_URL}/blob/main/${file.name}`;
         });
 
+        el.loading.textContent = `共加载 ${photoList.length} 张图片`;
         return photoList;
+
     } catch (err) {
         console.error("解析失败:", err);
         throw err;
@@ -66,28 +68,21 @@ function updatePhotoDisplay() {
     if (photoList.length === 0 || !el.currentPhoto || !el.photoInfo) return;
     
     const currentUrl = photoList[currentIndex];
-    el.currentPhoto.style.display = "none";
-    el.currentPhoto.onload = function() {
-        el.currentPhoto.style.display = "block";
-    };
-    el.currentPhoto.onerror = function() {
-        el.currentPhoto.src = "https://via.placeholder.com/400x300?text=图片加载失败";
-        el.currentPhoto.style.display = "block";
-    };
     el.currentPhoto.src = currentUrl;
+    el.currentPhoto.alt = `澳门内港照片 ${currentIndex + 1}`;
     el.photoInfo.textContent = `${currentIndex + 1} / ${photoList.length}`;
     
+    // 更新按钮状态
     if (el.prevBtn) el.prevBtn.disabled = currentIndex === 0;
     if (el.nextBtn) el.nextBtn.disabled = currentIndex === photoList.length - 1;
     if (el.printBtn) el.printBtn.disabled = false;
     if (el.mailBtn) el.mailBtn.disabled = false;
 }
 
-// 加载图片
+// 加载图片主逻辑
 async function loadPhotos() {
     try {
         await parseRepoImages();
-        if (el.loading) el.loading.textContent = `共加载 ${photoList.length} 张图片`;
         updatePhotoDisplay();
     } catch (err) {
         if (el.error) {
@@ -98,8 +93,9 @@ async function loadPhotos() {
     }
 }
 
-// 绑定事件
+// 绑定事件（全量判空）
 function bindEvents() {
+    // 上一个按钮
     if (el.prevBtn) {
         el.prevBtn.addEventListener("click", () => {
             if (currentIndex > 0) {
@@ -109,6 +105,7 @@ function bindEvents() {
         });
     }
 
+    // 下一个按钮
     if (el.nextBtn) {
         el.nextBtn.addEventListener("click", () => {
             if (currentIndex < photoList.length - 1) {
@@ -118,16 +115,19 @@ function bindEvents() {
         });
     }
 
-    // 打印和邮件分享按钮仅保留UI，实际逻辑需通过index.html的href跳转
+    // 打印按钮（点击后跳转至仓库对应图片页面）
     if (el.printBtn) {
         el.printBtn.addEventListener("click", () => {
-            alert("打印功能请通过页面链接跳转");
+            if (photoList[currentIndex]) {
+                window.open(photoList[currentIndex], "_blank");
+            }
         });
     }
 
+    // 邮件分享按钮（示例：跳转至仓库主页）
     if (el.mailBtn) {
         el.mailBtn.addEventListener("click", () => {
-            alert("邮件分享功能请通过页面链接跳转");
+            window.open(REPO_URL, "_blank");
         });
     }
 }
