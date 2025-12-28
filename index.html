@@ -31,7 +31,7 @@
             color: #dc3545; 
             display: none;
             background: #f8d7da;
-            border-radius: 8px;
+            border-radius: 8px; 
             margin: 20px 0;
             font-size: 16px;
         }
@@ -76,23 +76,39 @@
             background: #6c757d; 
             cursor: not-allowed; 
         }
+        /* 功能链接容器 - 突出分享仓库 */
         .func-links {
             display: flex;
-            gap: 20px;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
             margin-bottom: 30px;
         }
         .func-links a { 
-            padding: 12px 30px; 
+            padding: 14px 40px; 
             border-radius: 8px; 
             color: #fff; 
             text-decoration: none;
             font-size: 16px;
             text-align: center;
             display: inline-block;
+            width: 300px;
+            transition: all 0.2s;
+        }
+        /* 分享仓库按钮 - 视觉强化 */
+        .share-link { 
+            background: #d93025; 
+            font-weight: 600;
+            border: 2px solid #b71c1c;
+            box-shadow: 0 4px 8px rgba(217, 48, 37, 0.2);
         }
         .print-link { background: #28a745; }
         .map-link { background: #ffc107; color: #212529 !important; }
+        /* 悬浮效果 */
+        .func-links a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
     </style>
 </head>
 <body>
@@ -111,10 +127,11 @@
         <button id="next-btn" disabled>下一个</button>
     </div>
 
-    <!-- 打印照片、地图跳转均使用a href实现 -->
+    <!-- 功能链接：突出分享仓库，修正打印/分享地址 -->
     <div class="func-links">
-        <a href="https://25eqsg3f08-stack.github.io/macau-photo-gallery/" class="print-link" target="_blank">打印照片</a>
-        <a href="map.html" class="map-link" target="_blank">查看内港地图</a>
+        <a href="https://25eqsg3f08-stack.github.io/macau-photo-gallery/mail.html" class="share-link" target="_blank">🔗 分享仓库</a>
+        <a href="https://25eqsg3f08-stack.github.io/macau-photo-gallery/index.html" class="print-link" target="_blank">🖨️ 打印照片</a>
+        <a href="map.html" class="map-link" target="_blank">🗺️ 查看内港地图</a>
     </div>
 
     <script src="script.js"></script>
