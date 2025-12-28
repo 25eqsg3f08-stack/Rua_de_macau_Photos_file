@@ -15,7 +15,7 @@
         </header>
 
         <div class="main-content">
-            <!-- 图片展示区（新增加载时间标签） -->
+            <!-- 图片展示区（含加载时间显示） -->
             <div class="photo-container">
                 <img id="current-photo" class="photo" alt="澳门街道照片">
                 <div id="loading">加载中...</div>
@@ -47,5 +47,20 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="script.js"></script>
+    <!-- 新增：Service Worker 注册代码 -->
+    <script>
+        // 注册 Service Worker 实现离线缓存
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(registration => {
+                        console.log('SW注册成功：', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('SW注册失败：', error);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>
