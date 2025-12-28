@@ -63,7 +63,7 @@
             justify-content: center;
             margin-bottom: 30px;
         }
-        .nav-btns button, .func-btns a { 
+        .nav-btns button { 
             padding: 12px 30px; 
             border: none; 
             border-radius: 8px; 
@@ -71,23 +71,28 @@
             color: #fff; 
             cursor: pointer;
             font-size: 16px;
-            text-decoration: none;
-            display: inline-block;
         }
         .nav-btns button:disabled { 
             background: #6c757d; 
             cursor: not-allowed; 
         }
-        .func-btns {
+        .func-links {
             display: flex;
             gap: 20px;
             justify-content: center;
             margin-bottom: 30px;
         }
-        .func-btns a {
-            background: #28a745;
+        .func-links a { 
+            padding: 12px 30px; 
+            border-radius: 8px; 
+            color: #fff; 
+            text-decoration: none;
+            font-size: 16px;
             text-align: center;
+            display: inline-block;
         }
+        .print-link { background: #28a745; }
+        .map-link { background: #ffc107; color: #212529 !important; }
     </style>
 </head>
 <body>
@@ -100,16 +105,16 @@
         <div class="photo-info" id="photo-info">0 / 0</div>
     </div>
 
+    <!-- 上一个/下一个按钮 -->
     <div class="nav-btns">
         <button id="prev-btn" disabled>上一个</button>
         <button id="next-btn" disabled>下一个</button>
     </div>
 
-    <div class="func-btns">
-        <!-- 使用 href 跳转至打印页面（示例：仓库图片页面） -->
-        <button id="print-btn" disabled>打印照片</button>
-        <!-- 使用 href 跳转至邮件分享（示例：仓库主页） -->
-        <a href="https://github.com/25eqsg3f08-stack/Rua_de_macau_Photos" id="mail-btn" target="_blank">分享仓库</a>
+    <!-- 打印照片、地图跳转均使用a href实现 -->
+    <div class="func-links">
+        <a href="https://25eqsg3f08-stack.github.io/macau-photo-gallery/" class="print-link" target="_blank">打印照片</a>
+        <a href="map.html" class="map-link" target="_blank">查看内港地图</a>
     </div>
 
     <script src="script.js"></script>
