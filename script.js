@@ -13,16 +13,14 @@ function getEl(id) {
     return el;
 }
 
-// 初始化DOM元素引用
+// 初始化DOM元素引用（仅保留必要元素，删除print-btn/mail-btn）
 const el = {
     loading: getEl("loading"),
     error: getEl("error"),
     currentPhoto: getEl("current-photo"),
     photoInfo: getEl("photo-info"),
     prevBtn: getEl("prev-btn"),
-    nextBtn: getEl("next-btn"),
-    printBtn: getEl("print-btn"),
-    mailBtn: getEl("mail-btn")
+    nextBtn: getEl("next-btn")
 };
 
 // 解析仓库图片
@@ -63,7 +61,7 @@ async function parseRepoImages() {
     }
 }
 
-// 更新图片展示
+// 更新图片展示（仅维护上下切换按钮状态）
 function updatePhotoDisplay() {
     if (photoList.length === 0 || !el.currentPhoto || !el.photoInfo) return;
     
@@ -72,11 +70,9 @@ function updatePhotoDisplay() {
     el.currentPhoto.alt = `澳门内港照片 ${currentIndex + 1}`;
     el.photoInfo.textContent = `${currentIndex + 1} / ${photoList.length}`;
     
-    // 更新按钮状态
+    // 仅更新上一个/下一个按钮状态
     if (el.prevBtn) el.prevBtn.disabled = currentIndex === 0;
     if (el.nextBtn) el.nextBtn.disabled = currentIndex === photoList.length - 1;
-    if (el.printBtn) el.printBtn.disabled = false;
-    if (el.mailBtn) el.mailBtn.disabled = false;
 }
 
 // 加载图片主逻辑
@@ -93,7 +89,7 @@ async function loadPhotos() {
     }
 }
 
-// 绑定事件（全量判空）
+// 绑定事件（仅保留上下切换按钮的点击逻辑）
 function bindEvents() {
     // 上一个按钮
     if (el.prevBtn) {
@@ -112,22 +108,6 @@ function bindEvents() {
                 currentIndex++;
                 updatePhotoDisplay();
             }
-        });
-    }
-
-    // 打印按钮（点击后跳转至仓库对应图片页面）
-    if (el.printBtn) {
-        el.printBtn.addEventListener("click", () => {
-            if (photoList[currentIndex]) {
-                window.open(photoList[currentIndex], "_blank");
-            }
-        });
-    }
-
-    // 邮件分享按钮（示例：跳转至仓库主页）
-    if (el.mailBtn) {
-        el.mailBtn.addEventListener("click", () => {
-            window.open(REPO_URL, "_blank");
         });
     }
 }
